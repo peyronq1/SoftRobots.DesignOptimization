@@ -13,10 +13,13 @@ from splib3.numerics import vec3
 
 # from stlib3.physics.mixedmaterial import Rigidify
 
+# meshfolder = "~/Documents/Recherche_INRIA/Projet/SimCardioTest/Etude_experimentale/Identification/SoftRobots.DesignOptimization/Models/ApexSensor/MeshFixed/"
+meshfolder = "Models/ApexSensor/MeshFixed/"
+
 class Apex(Sofa.Prefab):
     prefabParameters = [
         {"name": "name", "type": "string", "help": "Node name", "default": "Apex"},
-        {"name": "YoungsModulus", "type": "float", "help": "Young modulus of the Apex material", "default": 2.0},
+        {"name": "YoungsModulus", "type": "float", "help": "Young modulus of the Apex material", "default": 0.2},
         {"name": "PoissonRation", "type": "float", "help": "Poisson ratio of the Apex material",
          "default": 0.45}]
         # {"name": "useInverse", "type":"boolean", "help": "Add components for inverse model", "default":False}
@@ -48,7 +51,7 @@ class Apex(Sofa.Prefab):
         #------------------------- Construct the force sensor cavity
         # Load the cavity mesh and define it as a pressure cavity
         outer_cavity = self.addChild("OuterCavity")
-        outer_cavity.addObject('MeshSTLLoader', name='MeshLoader', filename="Meshes/apex_cavite_ext.stl",
+        outer_cavity.addObject('MeshSTLLoader', name='MeshLoader', filename=meshfolder+"apex_cavite_ext.stl",
                                rotation=[0.0, 0.0, 0.0],
                                translation=[-12.0, -12.0, 33.5])
         outer_cavity.addObject('TriangleSetTopologyContainer', src='@MeshLoader', name='container')
@@ -82,7 +85,7 @@ class Apex(Sofa.Prefab):
 
         # Vizualization of the outer cavity mesh
         vizu = outer_cavity.addChild("VisualOuterCav")
-        vizu.addObject("MeshSTLLoader", name="outerCavMeshLoader", filename="Meshes/apex_cavite_ext.stl",
+        vizu.addObject("MeshSTLLoader", name="outerCavMeshLoader", filename=meshfolder+"apex_cavite_ext.stl",
                                        rotation=[0.0, 0.0, 0.0],
                                        translation=[-12.0, -12.0, 33.5])
         vizu.addObject("OglModel", name="rendererOuterCav", src="@outerCavMeshLoader",
@@ -98,14 +101,14 @@ class Apex(Sofa.Prefab):
                                  eulerRotation=[0.0, 0.0, 0.0], scale=[3, 3, 10])
         boxF.drawBoxes = True
         boxF.init()
-        # probe.addObject("ConstantForceField",mstate = self.elasticMaterial.dofs.getLinkPath(),indices=boxF.indices.value,totalForce=[0.0,0.0,-0.000],showArrowSize=300,showColor=[1.0, 0.0, 1.0, 1.0])
+        probe.addObject("ConstantForceField",mstate = self.elasticMaterial.dofs.getLinkPath(),indices=boxF.indices.value,totalForce=[0.0,0.0,-0.000],showArrowSize=300,showColor=[1.0, 0.0, 1.0, 1.0])
         # groupIndices.append([ind for ind in boxL.indices.value])
 
 
         #------------------------- Construct the inner apex cavity to simulate blood pressure
         # I guess the pressure is in MPa since we use mm as distance units ?
         inner_cavity = self.elasticMaterial.addChild("InnerCavity")
-        inner_cavity.addObject('MeshSTLLoader', name='MeshLoader', filename="Meshes/apex_cavite_int.stl", rotation= [0.0,0.0,0.0],
+        inner_cavity.addObject('MeshSTLLoader', name='MeshLoader', filename=meshfolder+"apex_cavite_int.stl", rotation= [0.0,0.0,0.0],
                             translation=[-12.0, -12.0, 33.5])
         inner_cavity.addObject('MeshTopology', name='topology', src='@MeshLoader')
         inner_cavity.addObject('MechanicalObject', src="@topology")
@@ -116,7 +119,7 @@ class Apex(Sofa.Prefab):
 
         # Vizualization of the inner cavity mesh
         vizu = inner_cavity.addChild("VisualInnerCav")
-        vizu.addObject("MeshSTLLoader", name="innerCavMeshLoader", filename="Meshes/apex_cavite_int.stl", rotation=[0.0, 0.0, 0.0],
+        vizu.addObject("MeshSTLLoader", name="innerCavMeshLoader", filename=meshfolder+"apex_cavite_int.stl", rotation=[0.0, 0.0, 0.0],
                          translation=[-12.0, -12.0, 33.5])
         vizu.addObject("OglModel", name="rendererInnerCav", src="@innerCavMeshLoader", color=[1.0, 0.0, 0.0, 0.5])
         vizu.addObject("BarycentricMapping", input=inner_cavity.MechanicalObject.getLinkPath(), output=vizu.rendererInnerCav.getLinkPath())
@@ -129,8 +132,9 @@ class Apex(Sofa.Prefab):
         # Create an ElasticMaterialObject, which import a mesh, assign it dofs  and mechanical properties
         # All the properties are expressed in SI units. The dimensions in the generated mesh are in meter,
         # the young modulus in Pascal ...
+        print("Youngs Modulus:" + str(self.YoungsModulus.value))
         e = body.addChild(ElasticMaterialObject(
-            volumeMeshFileName="Meshes/apex_deformable.msh",
+            volumeMeshFileName=meshfolder+"apex_deformable.msh",
             topoMesh="tetrahedron",
             scale=[1, 1, 1],
             totalMass=0.012,
@@ -145,7 +149,7 @@ class Apex(Sofa.Prefab):
         visual = body.addChild("VisualApex")
         # Load the STL file for the visualization, the rotation and translation must
         # fit the one for the ElasticMaterialObject
-        visual.addObject("MeshSTLLoader", name="visualLoader", filename="Meshes/apex.stl", rotation=[0.0, 0.0, 0.0],
+        visual.addObject("MeshSTLLoader", name="visualLoader", filename=meshfolder+"apex.stl", rotation=[0.0, 0.0, 0.0],
                          translation=[-12.0,-12.0,33.5])
         visual.addObject("OglModel", name="renderer", src="@visualLoader", color=[1.0, 1.0, 1.0, 0.5])
 
